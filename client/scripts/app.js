@@ -5,9 +5,11 @@ var app = {};
 
 app.server = 'http://parse.HRSF89.hackreactor.com/chatterbox/classes/messages';
 
-app.init = function () {};
+//app.init = function () {};
 
 app.send = function (message) {
+  debugger
+  console.log('app.send');
   $.ajax({
     // This is the url you should use to communicate with the parse API server.
     url: app.server,
@@ -85,7 +87,6 @@ app.handleUsernameClick = function () {
 };
 
 app.handleSubmit = function () {
-  //debugger
   var text = $('#message').val();
   var room = $('#roomSelect').val();
   var username = url.searchParams.get('username');
@@ -97,8 +98,6 @@ app.handleSubmit = function () {
   };
   
   app.send(message);
-  event.preventDefault();
-  return false;
   
 };
 
@@ -106,19 +105,16 @@ app.init = function() {
   $('.username').on('click', function() {
     app.handleUsernameClick();
   });
-  //debugger
   
-  $('.submit').on('submit', function(event) {
-    debugger
+  $('#send .submit').on('submit', function(event) {
+    event.stopPropagation();
     event.preventDefault();
     app.handleSubmit();
     console.log('submit clicked');
-    return false;
     
   });
 };
 
-app.init();
 
 
 
