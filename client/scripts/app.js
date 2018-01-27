@@ -3,13 +3,15 @@ var url = new URL(window.location);
 
 var app = {};
 
+app.messages = [];
+
 app.chatRooms = {};
+
+app.initialized = false;
 
 app.usernameEventListenerSet = false;
 
-//app.server = 'http://parse.hrsf89.hackreactor.com/chatterbox/classes/messages';
 app.server = 'http://parse.sfm8.hackreactor.com/chatterbox/classes/messages';
-//app.init = function () {};
 
 app.send = function (message) {
   $.ajax({
@@ -20,6 +22,7 @@ app.send = function (message) {
     contentType: 'application/json',
     success: function (data) {
       console.log('chatterbox: Message sent');
+      app.handleSuccessfulSend();
     },
     error: function (data) {
       // See: https://developer.mozilla.org/en-US/docs/Web/API/console.error
@@ -28,17 +31,30 @@ app.send = function (message) {
   });
 };
 
-app.fetch = function () {
+app.fetch = function (lastUpdate) {
+  if (lastUpdate === undefined) {
+    var currentTime = new Date();
+    currentTime.setMinutes(currentTime.getMinutes() - 30);
+    var lastUpdate = currentTime.toISOString();
+  }
+  if (!app.initialized) {
+    var order = '-createdAt';
+  } else {
+    var order = 'createdAt';
+  }
   $.ajax({
     // This is the url you should use to communicate with the parse API server.
     url: app.server,
     type: 'GET',
-    data: { order: '-createdAt' },
+    data: { order: order, 
+      where: { 'createdAt': {'$gte': {'__type': 'Date', 'iso': lastUpdate}}}
+    },
     contentType: 'application/json',
     success: function (data) {
       data.results.forEach(function(message) {
         app.renderRoom(message.roomname);
         app.renderMessage(message);
+        app.messages.push(message);
       });
       
     },
@@ -49,11 +65,23 @@ app.fetch = function () {
   });
 };
 
+app.handleSuccessfulSend = function() {
+  $('#message').val('');
+  app.retrieveNewMessages();
+};
+
+app.retrieveNewMessages = function() {
+  var lastUpdate = app.messages[0]['updatedAt'];
+  console.log('retrieving new messages from: ' + lastUpdate);
+  app.fetch(lastUpdate);
+};
+
 app.clearMessages = function () {
   $('#chats').empty();
 };
 
 app.renderMessage = function (message) {
+  debugger
   var roomName = xssFilters.inHTMLData(message.roomname);
   var userName = xssFilters.inHTMLData(message.username);
   var text = xssFilters.inHTMLData(message.text);
@@ -74,8 +102,12 @@ app.renderMessage = function (message) {
   });
   
   messageDiv.append(userNameParagraph, textParagraph);
+  if (!app.initialized) {
+    $('#chats').append(messageDiv);
+  } else {
+    $('#chats').prepend(messageDiv);
+  }
   
-  $('#chats').prepend(messageDiv);
 };
 
 app.renderRoom = function (roomname) {
@@ -121,6 +153,7 @@ app.handleSubmit = function () {
 
 app.init = function() {
   app.fetch();
+  app.initialized = true;
 };
 
 $(window).load(function() {
