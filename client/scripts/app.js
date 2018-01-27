@@ -3,8 +3,8 @@ var url = new URL(window.location);
 
 var app = {};
 
-app.server = 'http://parse.HRSF89.hackreactor.com/chatterbox/classes/messages';
-
+//app.server = 'http://parse.hrsf89.hackreactor.com/chatterbox/classes/messages';
+app.server = 'http://parse.sfm8.hackreactor.com/chatterbox/classes/messages';
 //app.init = function () {};
 
 app.send = function (message) {
@@ -21,7 +21,7 @@ app.send = function (message) {
     },
     error: function (data) {
       // See: https://developer.mozilla.org/en-US/docs/Web/API/console.error
-      console.error('chatterbox: Failed to send message', data);
+      console.error('chatterbox: Failed to send message', JSON.stringify(data));
     }
   });
 };
@@ -34,7 +34,11 @@ app.fetch = function () {
     // data: message,
     contentType: 'application/json',
     success: function (data) {
-      console.log(`message received: ${data}`);
+      console.log(`message received: ${JSON.stringify(data)}`);
+      data.results.forEach(function(message) {
+        app.renderMessage(message);
+      });
+      
     },
     error: function (data) {
       // See: https://developer.mozilla.org/en-US/docs/Web/API/console.error
@@ -48,12 +52,12 @@ app.clearMessages = function () {
 };
 
 app.renderMessage = function (message) {
-  var roomName = message.roomname;
-  var userName = message.username;
-  var text = message.text;
+  var roomName = xssFilters.inHTMLData(message.roomname);
+  var userName = xssFilters.inHTMLData(message.username);
+  var text = xssFilters.inHTMLData(message.text);
 
   var messageDiv = $('<div>', {
-    class: roomName
+    class: `chat ${roomName}`
   });
 
   var userNameParagraph = $('<p>', {
@@ -113,7 +117,13 @@ app.init = function() {
     console.log('submit clicked');
     
   });
+  
+  app.fetch();
 };
+
+$(window).load(function() {
+  app.init();
+});
 
 
 

@@ -10,7 +10,8 @@
   "dependencies": {
     "backbone": "~1.1.2",
     "underscore": "^1.8.3",
-    "jquery": "~2.1.1"
+    "jquery": "~2.1.1",
+    "xss": "https://github.com/leizongmin/js-xss.git#^0.3.5"
   },
   "ignore": [
     "**/.*",
