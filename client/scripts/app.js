@@ -5,6 +5,8 @@ var app = {};
 
 app.chatRooms = {};
 
+app.usernameEventListenerSet = false;
+
 //app.server = 'http://parse.hrsf89.hackreactor.com/chatterbox/classes/messages';
 app.server = 'http://parse.sfm8.hackreactor.com/chatterbox/classes/messages';
 //app.init = function () {};
@@ -39,6 +41,13 @@ app.fetch = function () {
       data.results.forEach(function(message) {
         app.renderRoom(message.roomname);
         app.renderMessage(message);
+        //if (!app.usernameEventListenerSet) {
+          // $('.username').on('click', function() {
+          //   console.log('username clicked');
+          //   app.handleUsernameClick.call(this);
+          // });
+          // app.usernameEventListenerSet = true;
+        //}
       });
       
     },
@@ -63,7 +72,8 @@ app.renderMessage = function (message) {
   });
 
   var userNameParagraph = $('<p>', {
-    class: 'username',
+    class: `username username-${userName}`,
+    
     text: userName
   });
 
@@ -99,8 +109,8 @@ app.renderRoom = function (roomname) {
 
 
 app.handleUsernameClick = function () {
-  $(this).toggleClass('friend');
-
+  var userName = $(this).text();
+  $(document.getElementsByClassName('username-' + userName)).each((index, value) => $(value).addClass('friend'));
 };
 
 app.handleSubmit = function () {
@@ -120,6 +130,7 @@ app.handleSubmit = function () {
 
 app.init = function() {
   $('.username').on('click', function() {
+    console.log('username clicked');
     app.handleUsernameClick();
   });
   
