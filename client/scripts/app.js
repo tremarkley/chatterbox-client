@@ -12,8 +12,6 @@ app.server = 'http://parse.sfm8.hackreactor.com/chatterbox/classes/messages';
 //app.init = function () {};
 
 app.send = function (message) {
-  console.log('app.send');
-  console.log('message to send: ' + JSON.stringify(message));
   $.ajax({
     // This is the url you should use to communicate with the parse API server.
     url: app.server,
@@ -41,13 +39,6 @@ app.fetch = function () {
       data.results.forEach(function(message) {
         app.renderRoom(message.roomname);
         app.renderMessage(message);
-        //if (!app.usernameEventListenerSet) {
-          // $('.username').on('click', function() {
-          //   console.log('username clicked');
-          //   app.handleUsernameClick.call(this);
-          // });
-          // app.usernameEventListenerSet = true;
-        //}
       });
       
     },
@@ -125,20 +116,19 @@ app.handleSubmit = function () {
   };
   
   app.send(message);
-  
+
 };
 
 app.init = function() {
-  $('.username').on('click', function() {
-    console.log('username clicked');
-    app.handleUsernameClick();
-  });
+  app.fetch();
+};
+
+$(window).load(function() {
+  app.init();
   
-  $('#send .submit').on('submit', function(event) {
-    event.stopPropagation();
-    event.preventDefault();
-    app.handleSubmit();
-    console.log('submit clicked');
+  $(document).on('click', '.username', function(event) {
+    console.log('username clicked');
+    app.handleUsernameClick.call(this);
   });
   
   $('#send .submit').on('click', function(event) {
@@ -147,12 +137,6 @@ app.init = function() {
     app.handleSubmit();
     console.log('submit clicked');
   });
-  
-  app.fetch();
-};
-
-$(window).load(function() {
-  app.init();
 });
 
 
