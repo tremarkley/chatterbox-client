@@ -3,18 +3,20 @@ var url = new URL(window.location);
 
 var app = {};
 
+app.chatRooms = {};
+
 //app.server = 'http://parse.hrsf89.hackreactor.com/chatterbox/classes/messages';
 app.server = 'http://parse.sfm8.hackreactor.com/chatterbox/classes/messages';
 //app.init = function () {};
 
 app.send = function (message) {
-  debugger
   console.log('app.send');
+  console.log('message to send: ' + JSON.stringify(message));
   $.ajax({
     // This is the url you should use to communicate with the parse API server.
     url: app.server,
     type: 'POST',
-    data: message,
+    data: JSON.stringify(message),
     contentType: 'application/json',
     success: function (data) {
       console.log('chatterbox: Message sent');
@@ -31,11 +33,11 @@ app.fetch = function () {
     // This is the url you should use to communicate with the parse API server.
     url: app.server,
     type: 'GET',
-    // data: message,
+    data: { order: '-createdAt' },
     contentType: 'application/json',
     success: function (data) {
-      console.log(`message received: ${JSON.stringify(data)}`);
       data.results.forEach(function(message) {
+        app.renderRoom(message.roomname);
         app.renderMessage(message);
       });
       
@@ -76,12 +78,23 @@ app.renderMessage = function (message) {
 };
 
 app.renderRoom = function (roomname) {
-  var roomName = $('<option>', {
-    value: roomname,
-    text: roomname
-  });
+  if (app.chatRooms[roomname] === undefined) {
+    app.chatRooms[roomname] = true;
+    var exists = false;
+    $('#roomSelect option').each(function() {
+      if (this.value === roomname) {
+        exists = true;
+      }
+    });
+    if (!exists) {
+      var roomName = $('<option>', {
+        value: roomname,
+        text: roomname
+      });
   
-  $('#roomSelect').append(roomName);
+      $('#roomSelect').append(roomName);
+    }
+  }
 };
 
 
@@ -115,7 +128,13 @@ app.init = function() {
     event.preventDefault();
     app.handleSubmit();
     console.log('submit clicked');
-    
+  });
+  
+  $('#send .submit').on('click', function(event) {
+    event.stopPropagation();
+    event.preventDefault();
+    app.handleSubmit();
+    console.log('submit clicked');
   });
   
   app.fetch();
