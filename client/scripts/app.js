@@ -7,6 +7,8 @@ app.messages = [];
 
 app.chatRooms = {};
 
+app.selectedRoom = 'Lobby';
+
 app.initialized = false;
 
 app.usernameEventListenerSet = false;
@@ -32,6 +34,7 @@ app.send = function (message) {
 };
 
 app.fetch = function (lastUpdate) {
+  debugger
   if (lastUpdate === undefined) {
     var currentTime = new Date();
     currentTime.setMinutes(currentTime.getMinutes() - 30);
@@ -53,10 +56,10 @@ app.fetch = function (lastUpdate) {
     success: function (data) {
       data.results.forEach(function(message) {
         app.renderRoom(message.roomname);
-        app.renderMessage(message);
+        //app.renderMessage(message);
         app.messages.push(message);
       });
-      
+      app.displayMessagesByRoom();
     },
     error: function (data) {
       // See: https://developer.mozilla.org/en-US/docs/Web/API/console.error
@@ -65,13 +68,22 @@ app.fetch = function (lastUpdate) {
   });
 };
 
+app.displayMessagesByRoom = function() {
+  app.clearMessages();
+  for (var i = 0; i < app.messages.length; i++) {
+    if (app.messages[i]['roomname'] === app.selectedRoom) {
+      app.renderMessage(app.messages[i]);
+    }
+  }
+};
+
 app.handleSuccessfulSend = function() {
   $('#message').val('');
   app.retrieveNewMessages();
 };
 
 app.retrieveNewMessages = function() {
-  var lastUpdate = app.messages[0]['updatedAt'];
+  var lastUpdate = app.messages[app.messages.length - 1]['updatedAt'];
   console.log('retrieving new messages from: ' + lastUpdate);
   app.fetch(lastUpdate);
 };
@@ -81,7 +93,6 @@ app.clearMessages = function () {
 };
 
 app.renderMessage = function (message) {
-  debugger
   var roomName = xssFilters.inHTMLData(message.roomname);
   var userName = xssFilters.inHTMLData(message.username);
   var text = xssFilters.inHTMLData(message.text);
@@ -152,8 +163,9 @@ app.handleSubmit = function () {
 };
 
 app.init = function() {
-  app.fetch();
   app.initialized = true;
+  app.fetch();
+  
 };
 
 $(window).load(function() {
@@ -162,6 +174,13 @@ $(window).load(function() {
   $(document).on('click', '.username', function(event) {
     console.log('username clicked');
     app.handleUsernameClick.call(this);
+  });
+  
+  $(document).on('change', '#roomSelect', function() {
+    app.selectedRoom = $(this).val();
+    $('#chats').empty();
+    app.retrieveNewMessages();
+    console.log(`Selected room ${app.selectedRoom}`);
   });
   
   $('#send .submit').on('click', function(event) {
